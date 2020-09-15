@@ -108,6 +108,8 @@ plot(cooks.distance(mod)) #check for cook's influence - Cook's distance shows th
 par(mfrow = c(2,2)) #set up the plot to be 2x2 rows x columns
 plot(mod) 
 par(mfrow = c(1,1))
+mod.null = lm(Religion ~ 1, data = data[!is.na(data$Ethnic),])
+anova(mod, mod.null) #check the model against the null (typically just controls)
 ```
 
 - What does $\beta$ actually mean?
