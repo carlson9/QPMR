@@ -1,0 +1,376 @@
+\documentclass[12pt]{article}
+\usepackage[top=1in, bottom=1in, right=1in, left=1in]{geometry}
+\usepackage{amsmath}
+%\usepackage[style=chicago-authordate, backend=biber, natbib=true]{biblatex}
+%\addbibresource{../Supplemental/masterMethods.bib}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usepackage{bm}
+\usetikzlibrary{calc}
+\usetikzlibrary{trees}
+\usepackage[bottom]{footmisc}
+\interfootnotelinepenalty=10000
+
+    
+\usepackage{setspace}
+%\usepackage{../Supplemental/pa}
+
+
+\usepackage{authblk}
+\title{Quantitative Political Methodology in R\\
+{\Large Ko\c{c} University}}
+\author{Fall 2020}
+\date{Syllabus}
+\linespread{1.3}
+\begin{document}
+\maketitle
+
+\hline
+\vspace{2em}
+\begin{minipage}[t]{.3\linewidth}
+\textbf{Instructor}\\
+David Carlson\\
+\href{mailto:dcarlson@ku.edu.tr}{dcarlson@ku.edu.tr}\\
+Office: CASE 140
+\end{minipage}
+\begin{minipage}[t]{.7\linewidth}
+\textbf{Class Schedule}\\
+TBA\\
+\textbf{Office Hours}\\
+TBA\\
+\textbf{Online Access}\\
+\href{https://ku.blackboard.com}{https://ku.blackboard.com} (for grades and readings)\\
+\href{https://github.com/carlson9/QPMR}{https://github.com/carlson9/QPMR} (for in-class material)
+\end{minipage}
+\vspace{2em}
+\hline
+
+\section*{Introduction}
+
+\noindent This course is designed to primarily familiarize the student with advanced techniques in political methodology. As part of that goal, the statistical software \texttt{R} will be learned by the student and used to implement all of the discussed methods. Further, because a solid knowledge of \texttt{R} is required for advancing and applying advanced political methodology, the course aims to develop the skills of the student to the point of being able to write a statistical software package suitable for publication on The Comprehensive R Archive Network (CRAN). While it is impossible to cover every method, part of the class is learning how to understand methods through appropriate mathematical notation that the student has never encountered. There is also therefore a mathematical modelling component. In this way, at the end of the semester the student is expected to be well-versed in political methodology.
+
+\noindent Prerequisite: INTL 501 (or equivalent).
+
+\section*{Required Book}
+
+This class requires extensive reading to be adequately prepared for class. While most readings are available online, we will be working with one text book. The book is written by two prominent political methodologists, and therefore uses political examples throughout. Readings, including those from the book, are listed on the schedule below. The details of the book are as follows:\\\\
+
+\noindent Gill, Jeff, and Michelle Torres. 2020. \emph{Generalized Linear Models: A Unified Approach}. 2nd Edition. Sage.\\\\
+
+\noindent The book comes with an \texttt{R} package with all of the code and data used in the book. When doing the readings, work through the code and ensure you either understand everything, or come to class with questions. Details are as follows:\\\\
+
+\noindent \texttt{GLMpack} available on CRAN or at: \href{https://github.com/smtorres/GLMpack}{https://github.com/smtorres/GLMpack}.\\\\
+
+\noindent We will also be using \texttt{shiny} apps (which can be run through a browser) to gain a better intuition for the topics covered in class. These are taken from Metzger's \emph{Using Shiny to Teach Econometric Models} (2020). The book is available pre-print at \href{https://www.dropbox.com/s/p4mre993k3tmwnt/MetzgerElement_29JUL20__web.pdf?dl=0}{https://www.dropbox.com/s/p4mre993k3tmwnt/MetzgerElement\_29JUL20\_\_web.pdf?dl=0}, and all of the apps are available at \href{https://metzgersk.github.io/shinyElement/}{https://metzgersk.github.io/shinyElement/}. As with the King and Torres book, the code is available through the apps. Be sure to read through the code and output.
+
+\section*{Requirements and Grading}
+
+Grades will not be rounded, these represent strict cut-offs. In the rare event of, for example, exactly a 90, the higher grade will be assigned. Pluses and minuses will be applied at the instructor's discretion and will only be used if there are clear separations within a given grade. \textbf{Note that the Ko\c{c} suggested grades are not followed in this course.}
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+A&90--100\\
+B&80--90\\
+C&70--80\\
+D&60--70\\
+F&$<$60\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[1)]
+
+
+\item \emph{Homework: 30\%}
+
+Both graded and ungraded homework assignments will be assigned throughout the semester. The ungraded assignments will not be checked, but it is essential to complete them for success in the course and to adequately learn the material. Four graded assignments will be checked. They will be posted on Blackboard at least one week before they are due. It is strongly encouraged that you start the homeworks as early as possible. As we will discuss in the first week, all work must be done on git. Late work will not be accepted. The work must be completed on git before the class meets for the week of the due date.
+
+
+\item \emph{Thesis Development: 40\%}
+
+A major component of the course is to develop methodological and presentation skills for the development of your thesis. Rather than work on unrelated research questions, the knowledge obtained in the course should be applied to your topic of interest. The methodological rigor and presentation style will be the key determinants of your grade for this section. In order to track your progress and keep you on-track, we will discuss your goals throughout the semester. If, at the end of the semester, you do not have a working thesis, you will be required to write a report detailing your progress and submit this for a final grade.
+
+\item \emph{Software Package: 30\%}
+
+As the semester develops, we will meet individually to discuss potential statistical software packages that could be developed in the course of your learning. The goals of the software may vary drastically from student to student. We will work together to determine the right fit. By the end of the semester, the package should be submitted to CRAN and accepted for publication.
+
+
+\end{enumerate}
+
+\section*{Course Schedule}
+
+\textbf{Please note this schedule is subject to change.}
+
+\subsection*{Week 1: OLS review}
+
+\noindent \textbf{Stats:} Mathematical properties and assumptions of OLS
+
+\noindent \textbf{\texttt{R}:} Loading a dataset, running a linear model, analyzing the output, linear algebra
+
+\noindent \textbf{Math:} Matrix operations, simple derivatives
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item App \texttt{leastSq}
+
+\item Read through and run the code from \href{https://www.scribbr.com/statistics/linear-regression-in-r/}{https://www.scribbr.com/statistics/linear-regression-in-r/}
+
+\item Read and work through the math in \href{https://www.cliffsnotes.com/study-guides/algebra/linear-algebra/matrix-algebra/operations-with-matrices}{https://www.cliffsnotes.com/study-guides/algebra/linear-algebra/matrix-algebra/operations-with-matrices}
+
+\end{enumerate}
+
+\subsection*{Week 2: Violations to the Gauss-Markov assumptions and variable transformations}
+
+\noindent \textbf{Stats:} Implications of violations, introduction to common solutions
+
+\noindent \textbf{\texttt{R}:} Determining optimal variable transformations, transforming variables
+
+\noindent \textbf{Math:} Exponentials, logarithms, and their derivatives
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Apps \texttt{whySurv}, \texttt{olsApp}, and \texttt{linRegEstms}
+
+\item Ch. 14 of \emph{Applied Statistics with \texttt{R}} (Dalpiaz 2020), available at \href{https://daviddalpiaz.github.io/appliedstats/transformations.html#r-markdown-7}{https://daviddalpiaz.github.io/appliedstats/transformations.html\#r-markdown-7}
+
+\item Work through some of the math and read section 3.9 of \emph{Calculus Volume 1} (OpenStax), available at \href{https://openstax.org/books/calculus-volume-1/pages/3-9-derivatives-of-exponential-and-logarithmic-functions}{https://openstax.org/books/calculus-volume-1/pages/3-9-derivatives-of-exponential-and-logarithmic-functions}
+
+\end{enumerate}
+
+\subsection*{Week 3: Probability distributions, mathematical notation, other prerequisites}
+
+\noindent \textbf{Graded homework 1 is due at the beginning of class.}
+
+\noindent \textbf{Stats:} Connecting probability distributions to OLS
+
+\noindent \textbf{\texttt{R}:} Drawing from a distribution, calculating PDF/PMF and CDF, plotting densities
+
+\noindent \textbf{Math:} Notation, understanding common distributions
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 1
+
+\item ``Common Probability Distributions: The Data Scientist's Crib Sheet'' (Owen 2018), available at \href{https://medium.com/@srowen/common-probability-distributions-347e6b945ce4}{https://medium.com/@srowen/common-probability-distributions-347e6b945ce4}
+
+\item Skim the Wikipedia page \href{https://en.wikipedia.org/wiki/List_of_probability_distributions}{https://en.wikipedia.org/wiki/List\_of\_probability\_distributions} and click on some distributions
+
+\end{enumerate}
+
+\subsection*{Week 4: The exponential family}
+
+\noindent \textbf{Stats:} Putting common distributions into exponential family form
+
+\noindent \textbf{\texttt{R}:} More advanced plotting, introductory simulations, variable types and dealing with messy data
+
+\noindent \textbf{Math:} Further derivatives, introduction to integration
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 2
+
+\item ``Introduction to Integration'' available at \href{https://www.mathsisfun.com/calculus/integration-introduction.html}{https://www.mathsisfun.com/calculus/integration-introduction.html} (this is very elementary, but is actually fairly intuitive)
+
+\end{enumerate}
+
+\subsection*{Week 5: Likelihood theory and the moments}
+
+\noindent \textbf{Stats:} MLE, the mean and variance of the exponential family
+
+\noindent \textbf{\texttt{R}:} The structure of an \texttt{R} package
+
+\noindent \textbf{Math:} The variance function, maximum likelihood estimation
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 3
+
+\item Apps \texttt{mleLM} and \texttt{mleLogit}
+
+\item Chapter ``Package structure'' in \emph{R packages} (Wickham 2015) available at \href{http://r-pkgs.had.co.nz/package.html}{http://r-pkgs.had.co.nz/package.html}
+
+\end{enumerate}
+
+\subsection*{Week 6: Linear structure and the link function}
+
+\noindent \textbf{Graded homework 2 is due at the beginning of class.}
+
+\noindent \textbf{Stats:} Generalization of OLS
+
+\noindent \textbf{\texttt{R}:} Running models with a link function, reporting the results, prediction function
+
+\noindent \textbf{Math:} Further distributions
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 4
+
+\item Review previous readings
+
+\end{enumerate}
+
+\subsection*{Week 7: Estimation procedures}
+
+\noindent \textbf{Stats:} Interpreting and presenting the output of a GLM
+
+\noindent \textbf{\texttt{R}:} Further GLMs, further plotting
+
+\noindent \textbf{Math:} Likelihood ratio tests, introduction on the math behind estimation techniques
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 5
+
+\item Pick three articles (preferably from top journals) that present at least one GLM, and look at the methods write-up. Bring the articles to class.
+
+\end{enumerate}
+
+\subsection*{Week 8: Residuals and model fit}
+
+\noindent \textbf{Stats:} Deviance functions, measuring and comparing goodness of fit
+
+\noindent \textbf{\texttt{R}:} Analyzing deviances, determining outliers, sensitivity analyses
+
+\noindent \textbf{Math:} The asymptotic properties of fit statistics
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 6
+
+\item Chapter ``Outlier Treatment'' from \emph{r-statistics.co} (Prabhakaran 2017) available at \href{http://r-statistics.co/Outlier-Treatment-With-R.html}{http://r-statistics.co/Outlier-Treatment-With-R.html}
+
+\end{enumerate}
+
+\subsection*{Week 9: Extensions to generalized linear models}
+
+\noindent \textbf{Graded homework 3 is due at the beginning of class.}
+
+\noindent \textbf{Stats:} Quasi-likelihoods, fractional regression models, Tobit models, zero-inflated models, hurdle models
+
+\noindent \textbf{\texttt{R}:} Implementing extensions using packages
+
+\noindent \textbf{Math:} Quasi-likelihoods, probabilistic modeling notation
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Gill and Torres Ch. 7
+
+\item All of the remaining apps (Ch. 5 and Appendix C)
+
+\end{enumerate}
+
+\subsection*{Week 10: Temporal models}
+
+\noindent \textbf{Stats:} Formalization of growth models, survival models, other temporal models
+
+\noindent \textbf{\texttt{R}:} Implementation of temporal models, dealing with temporal data
+
+\noindent \textbf{Math:} Introductory game theory
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Chapter ``Time Series Analysis'' from \emph{r-statistics.co} (Prabhakaran 2017) available at \href{http://r-statistics.co/Time-Series-Analysis-With-R.html}{http://r-statistics.co/Time-Series-Analysis-With-R.html}
+
+\item Review the app \texttt{whySurv}
+
+\item ``Survival Analysis with R'' (Rickert 2017) available at \href{https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/}{https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/}. Be sure to work through the code as well.
+
+\item This week and next, work through as much as possible of Part I --- Games with Perfect Information in \emph{Introduction to Game Theory} (WikiBooks) available at \href{https://en.wikibooks.org/wiki/Introduction_to_Game_Theory}{https://en.wikibooks.org/wiki/Introduction\_to\_Game\_Theory}
+
+\end{enumerate}
+
+\subsection*{Week 11: TSCS analyses}
+
+\noindent \textbf{Stats:} Random effects, fixed effects, standard error adjustments, GPs
+
+\noindent \textbf{\texttt{R}:} \texttt{lme4}, implementing fixed effects with different contrasts, packages for error adjustment
+
+\noindent \textbf{Math:} Introductory game theory
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Run through the code and read (including the links) of the slides at \href{https://dss.princeton.edu/training/Panel101R.pdf}{https://dss.princeton.edu/training/Panel101R.pdf}. Note that the procedures are for learning purposes and not necessarily the best practice.
+
+\item Bates, Douglas et al. 2015. ``Fitting Linear Mixed-Effects Models Using \texttt{lme4}.'' \emph{Journal of Statistical Software}. Available at \href{https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf}{https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf}
+
+\end{enumerate}
+
+\subsection*{Week 12: Introduction to Bayesian statistics}
+
+\noindent \textbf{Graded homework 4 is due at the beginning of class.}
+
+\noindent \textbf{Stats:} Conceptual differences between frequentist and Bayesian approaches, advantages of the Bayesian approach
+
+\noindent \textbf{\texttt{R}:} Introduction to Bayesian packages, implementing Bayesian models, checking for convergence, presenting output
+
+\noindent \textbf{Math:} Bayes' Theorem, building blocks of Bayesian models
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Chapter 1 from \emph{An Introduction to Bayesian Thinking} (Clyde et al. 2020), available at \href{https://statswithr.github.io/book/}{https://statswithr.github.io/book/}
+
+\end{enumerate}
+
+\subsection*{Week 13: Conjugate priors and derivations}
+
+\noindent \textbf{Stats:} Overview of common models and their conjugate priors
+
+\noindent \textbf{\texttt{R}:} Further implementation of Bayesian models
+
+\noindent \textbf{Math:} Deriving posteriors with conjugate priors
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Chapter 2 from \emph{An Introduction to Bayesian Thinking} (Clyde et al. 2020), available at \href{https://statswithr.github.io/book/}{https://statswithr.github.io/book/}
+
+\end{enumerate}
+
+\subsection*{Week 14: Implementing Stan in \texttt{R}}
+
+\noindent \textbf{Stats:} Overview of common priors and their properties
+
+\noindent \textbf{\texttt{R}:} Coding a Stan block, implementing it in \texttt{R}, plotting output, convergence diagnostics, parallelizing code
+
+\noindent \textbf{Math:} Properties of probability densities
+
+\noindent \textbf{Reading:}
+
+\begin{enumerate}[1)]
+
+\item Chapter 7 from \emph{An Introduction to Bayesian Thinking} (Clyde et al. 2020), available at \href{https://statswithr.github.io/book/}{https://statswithr.github.io/book/}
+
+\end{enumerate}
+
+\end{document}
