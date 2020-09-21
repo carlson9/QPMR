@@ -255,3 +255,14 @@ mod.vif = lm(avgAA ~ inflation + aid + propEmig,
     data = mergedY)
 summary(mod.vif)
 ```
+
+
+## Outliers
+
+```{r outliers}
+#Bonferroni outlier test
+outlierTest(mod)
+mod.out = lm(avgAA ~ inflation + aid + propEmig + exports + imports, mergedY[-81,])
+summary(mod.out)
+```
+
