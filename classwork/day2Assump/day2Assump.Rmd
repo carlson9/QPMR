@@ -94,7 +94,10 @@ ef.upper = (mergedY$inflation - min(mergedY$inflation) + .01)^(coef(mod4)[2] + 1
 plot(mergedY$inflation, ef) #diminshing effect
 segments(x0 = mergedY$inflation, y0 = ef.lower, x1 = mergedY$inflation, y1 = ef.upper)
 library(margins)
-cplot(mod4, x = 'inflation', what = 'effect') #what is the difference?
+x=cplot(mod4, x = 'inflation', what = 'effect') #what is the difference?
+x[,2:4] = exp(x[,2:4])
+plot(x[,1], x[,2])
+segments(x0=x[,1], x1=x[,1], y0=x[,3], y1=x[,4])
 ```
 
 - What if we suspect a non-linear relationship and want to test for it?
@@ -251,7 +254,7 @@ acf_resid(m1AR1)
 ```{r multicol}
 vif(mod)
 #exports and imports are very high
-mod.vif = lm(avgAA ~ inflation + aid + propEmig, 
+mod.vif = lm(avgAA ~ inflation + exports + aid + propEmig, 
     data = mergedY)
 summary(mod.vif)
 ```
