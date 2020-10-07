@@ -59,30 +59,30 @@ col = viridis(15)
 plot(data$x[data$Group == 1] ~ unique(data$Time), type = 'l',
      xlab = 'Time', ylab = 'x', ylim = c(min(data$x)-.1, max(data$x) +.1),
      col = col[1])
-for(i in 1:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l')
+for(i in 2:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l')
 #lets increase the size of the window to fit a legend
 plot(data$x[data$Group == 1] ~ unique(data$Time), type = 'l',
      xlab = 'Time', ylab = 'x', ylim = c(min(data$x)-.1, max(data$x) +1),
      col = col[1])
-for(i in 1:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l')
+for(i in 2:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l')
 legend('topleft', legend = 1:max(data$Group), col = col, lty = 1, cex = .3, bty = 'n')
 #what about line types for greyscale?
 plot(data$x[data$Group == 1] ~ unique(data$Time), type = 'l',
      xlab = 'Time', ylab = 'x', ylim = c(min(data$x)-.1, max(data$x) +1),
      col = col[1])
-for(i in 1:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l', lty = i)
+for(i in 2:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'l', lty = i)
 legend('topleft', legend = 1:max(data$Group), col = col, lty = 1:max(data$Group), cex = .3, bty = 'n', horiz = T)
 #notice the recycling of lty - lets add points as well
 plot(data$x[data$Group == 1] ~ unique(data$Time), type = 'b',
      xlab = 'Time', ylab = 'x', ylim = c(min(data$x)-.1, max(data$x) +1),
      col = col[1], pch = 1, cex = .3)
-for(i in 1:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'b', lty = i, pch = i, cex = .3)
+for(i in 2:max(data$Group)) points(data$x[data$Group == i] ~ unique(data$Time), col = col[i], type = 'b', lty = i, pch = i, cex = .3)
 legend('topleft', legend = 1:max(data$Group), col = col, lty = 1:max(data$Group), pch = 1:max(data$Group), cex = .3, bty = 'n', horiz = T)
-#lets repeat for y to investiagete the auto-correlation in the outcome
+#lets repeat for y to investigate the auto-correlation in the outcome
 plot(data$y[data$Group == 1] ~ unique(data$Time), type = 'b',
      xlab = 'Time', ylab = 'y', ylim = c(min(data$y)-.1, max(data$y) +1),
      col = col[1], pch = 1, cex = .3)
-for(i in 1:max(data$Group)) points(data$y[data$Group == i] ~ unique(data$Time), col = col[i], type = 'b', lty = i, pch = i, cex = .3)
+for(i in 2:max(data$Group)) points(data$y[data$Group == i] ~ unique(data$Time), col = col[i], type = 'b', lty = i, pch = i, cex = .3)
 legend('topleft', legend = 1:max(data$Group), col = col, lty = 1:max(data$Group), pch = 1:max(data$Group), cex = .3, bty = 'n', horiz = T)
 #notice there are also different baselines
 #now lets plot y as a function of x, first all points
@@ -97,11 +97,11 @@ plot(data$y[data$Group == 1] ~ data$x[data$Group == 1], type = 'p',
      xlab = 'x', ylab = 'y', ylim = c(min(data$y)-.1, max(data$y) +1),
      xlim = c(min(data$x)-.1, max(data$x) +.1),
      col = col[1], pch = 1, cex = .3)
-for(i in 1:max(data$Group)) points(data$y[data$Group == i] ~ data$x[data$Group == i], col = col[i], type = 'p', lty = i, pch = i, cex = .3)
+for(i in 2:max(data$Group)) points(data$y[data$Group == i] ~ data$x[data$Group == i], col = col[i], type = 'p', lty = i, pch = i, cex = .3)
 legend('topleft', legend = 1:max(data$Group), col = col,
        pch = 1:max(data$Group), cex = .3, bty = 'n', horiz = T)
 #add the lines
-for(i in 1:max(data$Group)) abline(a = coef(mod)[i+1], b = coef(mod)[1], col = col[i])
+for(i in 2:max(data$Group)) abline(a = coef(mod)[i+1], b = coef(mod)[1], col = col[i])
 #now lets use ggplot2
 data$pred = predict(mod)
 library(ggplot2)
@@ -125,8 +125,8 @@ simAnalysis = function(rho = seq(0, .9, by = .1),
                        n.datasets = 1000, ...){ #the ... notation allows additional arguments to be sent to lower level functions
   datas = lapply(1:n.datasets, function(y){
     lapply(rho, function(x){
-      dd = tscsGen(x, seed = 100*y + 10*x)
-      mod = lm(y ~ x + as.factor(Group) - 1, data)
+      dd = tscsGen(x, seed = 100*y + 10*x, ...)
+      mod = lm(y ~ x + as.factor(Group) - 1, dd)
       cov = confint(mod)[1,1] < .4 & confint(mod)[1,2] > .4
       pos = confint(mod)[1,1] > 0
       return(list(cov, pos))
@@ -151,7 +151,7 @@ save(toAnalyze, file = 'sims.Rdata')
 load('sims.Rdata')
 plot(toAnalyze[[1]] ~ seq(0, .9, by=.1), ylim = c(0,1), type = 'l',
      xlab = expression(rho), ylab = 'True Rate')
-points(toAnalyze[[2]] ~ seq(0, .9, by=.1), type='l')
+points(toAnalyze[[2]] ~ seq(0, .9, by=.1), type='l', lty = 2)
 ```
 
 ## Coefficient plots
