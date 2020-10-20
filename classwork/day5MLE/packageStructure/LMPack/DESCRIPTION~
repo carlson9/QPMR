@@ -1,0 +1,13 @@
+Package: LMPack
+Title: Running linear models on combinations of potential covariates
+Version: 0.1
+Author: David G. Carlson
+Maintainer: David G. Carlson <carlson.david@wustl.edu>
+Description: Run linear models on combinations of potential covariates and
+    determine the "importance" of the estimates.
+Depends:
+    R (>= 3.0.0),
+    methods
+License: GPL (>= 2)
+Suggests:
+    none
