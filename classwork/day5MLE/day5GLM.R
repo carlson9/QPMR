@@ -10,7 +10,7 @@ data = read.dta13('repdata.dta')
 #logit (most common)
 mod1 = glm(war ~ Oil + empgdpenl + emplpopl + empolity2l,
            data = data,
-           family = binomial)
+           family = binomial(link = 'logit'))
 summary(mod1)
 
 #probit

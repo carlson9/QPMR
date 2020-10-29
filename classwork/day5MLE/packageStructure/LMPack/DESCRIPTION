@@ -11,3 +11,4 @@ Depends:
 License: GPL (>= 2)
 Suggests:
     none
+RoxygenNote: 7.1.1
