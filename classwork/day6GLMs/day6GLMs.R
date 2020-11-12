@@ -1,3 +1,5 @@
+#code originally from Devin P. Brown (Koc University - GitHub username: devinpborwn96)
+
 rm(list=ls())
 if(dirname(rstudioapi::getActiveDocumentContext()$path) != '') setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
