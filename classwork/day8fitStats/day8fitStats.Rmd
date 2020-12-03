@@ -56,7 +56,7 @@ pop_logit_null$aic #larger, therefore 'worse'
 AIC favors more explanatory variables and greater fit, BIC favors more parsimonious models. BIC is based on Bayesian principles, but is an approximation appropriate for frequentist methods.
 
 $$
-\text{BIC} = -2\ell(\hat{\theta}|y) = p\log(n)
+\text{BIC} = -2\ell(\hat{\theta}|y) + p\log(n)
 $$
 
 ```{r bic}
