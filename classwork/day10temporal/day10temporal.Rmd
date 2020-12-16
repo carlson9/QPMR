@@ -41,7 +41,6 @@ legend('topleft',
 ```{r linearTemporal}
 simpleMod = lm(politychanget1 ~ nonviol, data = data)
 summary(simpleMod)
-#let's add some controls
 acf(data$politychanget1[order(data$eyear)],
     na.action = na.pass) #not really an issue, but assumes evenly spaced observations
 library(car)
@@ -67,17 +66,17 @@ tser = uts(data$politychanget1[order(data$eyear)],
                  sep = ':'),
                format = '%Y:%H:%M'))
 #now linearly interpolate
-newX = sample_values(tser,
+newX = sample_values(na.omit(tser),
               as.POSIXct(paste(as.character(rep(min(data$eyear):max(data$eyear), each = max(table(data$eyear)))),
                  1,
                  1:max(table(data$eyear)),
                  sep = ':'),
-               format = '%Y:%H:%M'))
+               format = '%Y:%H:%M'), interpolation  = 'linear')
 plot(newX ~ rep(min(data$eyear):max(data$eyear),
                 each = max(table(data$eyear))),
      pch = 18)
 kpss.test(na.omit(newX),
-          null = 'Trend') #not much change
+          null = 'Trend') #now we see a problem
 #what about heteroskedasdicity?
 #let's do the same for violent or not
 tser = uts(data$nonviol[order(data$eyear)], 
@@ -87,7 +86,7 @@ tser = uts(data$nonviol[order(data$eyear)],
                  sep = ':'),
                format = '%Y:%H:%M'))
 #now linearly interpolate
-newV = sample_values(tser,
+newV = sample_values(na.omit(tser),
               as.POSIXct(paste(as.character(rep(min(data$eyear):max(data$eyear), each = max(table(data$eyear)))),
                  1,
                  1:max(table(data$eyear)),
@@ -119,7 +118,7 @@ modGP = gausspr(politychanget1 ~ viol + eyear,
         data = data2,
         kernel = 'rbfdot',
         type = 'regression',
-        variance.model = T) #we use dot product for the non-stationarity
+        variance.model = T) #we use dot product for the non-stationarity, but here we use sep exp
 #when we code our own model, we can specify different inputs to mean and kernel, and make inferences on correlations
 #for now we just plot to make inferences
 xtestViol = data.frame('viol' = 1,
