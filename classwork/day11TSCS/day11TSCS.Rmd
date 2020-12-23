@@ -31,7 +31,7 @@ data = read.dta13('../day10temporal/WCRWreplication.dta')
 - Unlike random/mixed effects, they do not have distributional assumptions
 - These two points mean that there is no information `borrowed' from other unit-times, and the variation that would be explained by your independent variable is largely absorbed
 - These have great asymptotic properties, but a lot of research on the actual practice show they perform rather poorly, even when assumptions are met
-  + Linearity (although one could nonparametrically adjust for unit-specific (time-specific) unobserved confounders by matching a treated observation with control observations of the same unit (time period), no other observation shares the same unit and time indices. Thus, the 2FE estimator critically relies upon the linearityassumption for its simultaneous adjustment for the two types of unobserved confounders)
+  + Linearity (although one could nonparametrically adjust for unit-specific (time-specific) unobserved confounders by matching a treated observation with control observations of the same unit (time period), no other observation shares the same unit and time indices. Thus, the 2FE estimator critically relies upon the linearity assumption for its simultaneous adjustment for the two types of unobserved confounders)
   + Separability (precisely when their respective convex hulls are disjoint (colloquially, do not overlap); means that the marginal rate of substitution between any pair of primary inputs is independent of the amount of intermediate inputs used)
   + Additivity (means that the effect of one independent variable(s) on the dependent variable does NOT depend on the value of another independent variable(s))
   + Functional form assumption (are we modeling the DGP?)
@@ -92,6 +92,8 @@ summary(Log_Casualty.Model.did)$r.squared # R-squared: 0.9905888
 #what's wrong with this R-squared?
 ```
 
+## Lagged Dependent Variable (LDV) Models
+
 ## Correcting Standard Errors
 
 - There are two main adjustments; robust clustered standard errors (RCSE) and panel corrected standard errors (PCSE)
@@ -149,7 +151,7 @@ library(lme4)
 REMod = lmer(politychanget1 ~ nonviol + (1|location),
              data = data.1)
 summary(REMod) #if you look at the variation of random effects, location is not warranted
-#now let's check location
+#now let's check time
 REMod2 = lmer(politychanget1 ~ nonviol + (1|byear),
              data = data.1)
 summary(REMod2) #no variation - no need for any heterogeneous exploration (though you might need to for reviewers, but you can argue these points preemptively or when you get reviews)
