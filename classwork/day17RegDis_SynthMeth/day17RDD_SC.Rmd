@@ -77,7 +77,7 @@ $$
 * Test the effect of some intervention/treatment by synthesizing a treated unit as if it were not treated
 * Compare the synthetic unit to the actual data
 * We synthesize the outcome of the treated unit had there been no treatment through weighted linear regression
-* The weights of the donor pool are constrained to be between zero and one
+* The weights of the donor pool are constrained to be between zero and one, and sum to one
 * There is generally an (arbitrary) cutoff to not include low weighted units
 * Simply, the weights are multiplied by the outcomes of the donor units post-treatment to generate point estimates of the outcome of the treated absent treatment
 * Intervention must have no effect during pretreatment period
