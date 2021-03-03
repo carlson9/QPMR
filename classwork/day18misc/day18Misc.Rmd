@@ -1,0 +1,224 @@
+---
+title: "Multiple Imputation, WAIC and LOO, Misc"
+author: "David Carlson"
+date: "March 4, 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('~/QPMR/classwork/day18misc/')
+```
+
+
+# Multiple imputation - Assumptions
+
+Nonignorable missing data is data in which the missingness depends on unobserved data. In order to impute data, we need to assume that we can model the missing data based on data that is observed. There is no standard tool to deal with this problem. We can model the missing data using various predictors and compare the results to see if which predictors are used dramatically changes our findings. The assumption we are making is that the model we use to impute the data is appropriate and is not biasing our interpretations of the data.
+
+## An example function
+
+```{r exFunc}
+#function summarizing missingness in matrix or dataframe X
+#param X matrix or dataframe to be summarized
+#param row.crit critical proportion to drop rows that exceed this proportion of missingness - default is .5
+#param col.crit critical proportion to drop columns that exceed this proportion of missingness - default is .5
+#return list of the following elements:
+# prop.miss Proportion of missing data
+# summary.cols Matrix of summary of missingness by variable
+# problem.cols Vector of column names with too much missingness
+# problem.rows Vector of row indexes with too much missingness
+# cor.tuples Vector of pairwise columns with too much correlation - names separated by period
+# X.dropped Dataframe with problematic rows and columns dropped
+missingness <- function(X, row.crit = .5, col.crit = .5){
+  #give unnamed variables in X the number corresponding to location
+  colnames(X) <- colnames(X, do.NULL = FALSE, prefix='col')
+  #proportion of missing data
+  prop.miss <- sum(is.na(X))/prod(dim(X))
+  #missingness by column
+  summary.cols <- matrix(NA, nrow=2, ncol=dim(X)[2], dimnames = list(c('Number Missing', 'Proportion Missing'), colnames(X)))
+  summary.cols[1,] <- apply(X, 2, function(x) sum(is.na(x)))
+  summary.cols[2,] <- summary.cols[1,]/dim(X)[1]
+  #problematic columns
+  problem.cols <- names(which(summary.cols[2,]>col.crit))
+  #problematic rows
+  problem.rows <- which(apply(X, 1, function(x){
+    sum(is.na(x)) > row.crit*dim(X)[2]
+  }))
+  #pairwise variables with high correlation
+  cor.mat <- cor(X, use='pair')
+  cor.mat[is.na(cor.mat)] <- 0
+  cor.mat[lower.tri(cor.mat, diag=TRUE)] <- 0
+  cor.tuples <- names(unlist(apply(cor.mat, 2, function(x) which(x >= .8))))
+  #dataframe dropping problematic rows and columns
+  X.dropped <- as.data.frame(X)[-problem.rows, colnames(X)!=problem.cols]
+  return(list(prop.miss=prop.miss, summary.cols=summary.cols, problem.cols=problem.cols, problem.rows=problem.rows, cor.tuples=cor.tuples, X.dropped=X.dropped))
+}
+#example
+set.seed(1313)
+X <- matrix(rnorm(50), ncol=5, nrow=10)
+#add 2 correlated columns
+X <- cbind(X, X[,1]+rnorm(1))
+X <- cbind(X, X[,3]+rnorm(1))
+#add missingness
+(X <- matrix(sample(c(NA, 1), 70, replace=TRUE, prob=c(.4,.6)), nrow=10)*X)
+missingness(X)
+```
+
+## Replication
+
+Table 1 shows the regression with omitting NAs. Table 2 shows the pooled regression aftermultiple imputation to 5 data frames. The missingness was randomly generated on all variables with probability .1 of being missing. All of the variables were used in the imputationp rocess, despite only using a selection of the variables in the regression. Maximizing the amount of information used to model the missing data tends to decrease bias in the estimations. We see that party ID and med.time switched signs in the pooled multiple imputation regression, though both estimates have 95% confidence intervals bounding zero. Category 3 in the model omitting NAs was not estimated, likely due to singularities when the NAs wereomitted. State ID has a smaller magnitude in the imputed regression, but the confidenceinterval does not bound zero. Leg influence gained in magnitude and the confidence intervalin the imputed regression does not bound zero, while the NA omitting model does. Election board is significant in both models, but has a smaller magnitude in the MICE regression. There are other variables in which the magnitude changes, but the signs are consistent. Generally, significance levels increased in the MICE imputation, which isn't terribly surprisingas the sample size is larger. The change in magnitude and the change in signs of some ofthe estimates is a little surprising, since the data is missing completely at random. Thismeans the data is MCAR, and omitting NAs shouldn’t drastically change our substantiveinterpretations. This highlights the importance of not ignoring missing data. Even when itwas randomly missing, the interpretations changed.
+
+```{r rep, results='asis'}
+asap <- read.table('asap.individual.dat.txt', header=TRUE)
+set.seed(1919)
+missing <- matrix(sample(c(NA,1), prod(dim(asap)), replace=TRUE, prob=c(.1, .9)), ncol=dim(asap)[2])
+asap <- asap*missing
+asap.lm <- lm(gov.influence ~ . - medt.contr - grp.influence, asap, na.action=na.omit)
+library(xtable)
+xtable(cbind(summary(asap.lm)$coef, confint(asap.lm)[-10,]), caption='Linear Model Omitting NAs')
+library(mice)
+asap.mids <- mice(asap, print=FALSE)
+asap.mice <- lm.mids(gov.influence ~ . - medt.contr - grp.influence, asap.mids)
+xtable(summary(pool(asap.mice)), caption='Linear Model with MICE Imputation')
+```
+
+
+## Example analysis comparison
+
+The paper uses a probit link and explanatory variables POLITICS, READPAP, PTYTHNK, IDSTRNG, TAXLESS, DEATHPEN, LORDS, SCENGBEN, SCOPREF1, RSEX, RAGE, RSOCCLA2, TENURE1, PRESB, and INDPAR. I will use a logit link and I will drop SCENGBEN, which indicates those that think economic policies benefit Scotland more than England, and INDPAR, which is whether they favor independence, because these estimates were anomolies in the findings. I will also drop PRESB, as it doesn't appear in the data. Table 3 shows the results while omitting NAs. Table 4 shows the pooled results after mulitple imputation to 5 dataframes. All of the variables were used to model the missing data to decrease bias and increase the amount of information used in determining imputed values. Between the two models, the intercept, though substantively unimportant, is changed rather dramatically. POLITICS, READPAP, and PTYTHHINK are fairly close both in magnitude and their  95\% confidence intervals. IDSTRONG decreases in magnitude but maintains significance. TAXLESS and DEATHPEN decrease in magnitude and also lose significance. LORDS and SCOPREF1 are similar in magnitude and confidence intervals. RSEX decreases in magnitude but the confidence intervals for both models bound zero. RAGE increases in magnitude but both confidence intervals bound zero. RSOCCLA2 increases slightly in magnitude, but gains significance (in the NA omitting model the confidence interval bounds zero but it does not in the MICE pooled regression). Finally, TENURE1 decreases in magnitude, and neither confidence interval bounds zero. In sum, there are not large differences in substantive interpretations, with some changes in magnitude and the confidence intervals. Also, the standard errors tend to be smaller in the imputed regression, which is sensible as the number of observations is larger.
+
+```{r ex, eval = F, results='asis'}
+scot <- read.table('http://jgill.wustl.edu/data/scotland.1997.missing.dat')
+scot$VOTE <- ifelse(scot$VOTE==2, 1, 0)
+scot.glm <- glm(VOTE ~ POLITICS + READPAP + PTYTHNK + IDSTRNG + TAXLESS + DEATHPEN + LORDS + SCOPREF1 + RSEX + RAGE + RSOCCLA2 + TENURE1, scot, family=binomial)
+xtable(cbind(summary(scot.glm)$coef, confint(scot.glm)), caption='Logit Omitting NAs')
+scot.mids <- mice(scot, print=FALSE)
+scot.mice <- glm.mids(VOTE ~ POLITICS + READPAP + PTYTHNK + IDSTRNG + TAXLESS + DEATHPEN + LORDS + SCOPREF1 + RSEX + RAGE + RSOCCLA2 + TENURE1, scot.mids, family=binomial)
+xtable(summary(pool(scot.mice)), caption='Pooled Logit with Multiple Imputation')
+```
+
+# WAIC and LOO (leave-one-out)
+
+Leave-one-out cross-validation (LOO) and the widely applicable information criterion (WAIC) are methods for estimating pointwise out-of-sample prediction accuracy from a fitted Bayesianmodel using the log-likelihood evaluated at the posterior simulations of the parameter values. LOO and WAIC have various advantages over simpler estimates of predictive error such as AIC and DIC but are less used in practice because they involve additional computational steps. Here we lay out fast and stable computations for LOO and WAIC that can be performed using existing simulation draws.  We introduce an efficient computation of LOO using Pareto-smoothed importance sampling (PSIS), a new procedure for regularizing importance weights.  Although WAIC is asymptotically equal to LOO, we demonstrate that PSIS-LOO is more robust in the finite case with weak priors or influential observations.  As a byproduct of our calculations, we also obtain approximate standard errors for estimated predictive errors and for comparing of predictive errors between two models.  We implement the computations in an R package called loo and demonstrate using models fit with the Bayesian inference package Stan.
+
+loo is an R package that allows users to compute efficient approximate leave-one-out cross-validation for fitted Bayesian models, as well as model weights that can be used to average predictive distributions. The loo package implements the fast and stable computations for approximate LOO-CV and WAIC.
+
+From existing posterior simulation draws, we compute approximate LOO-CV using Pareto smoothed importance sampling (PSIS), a new procedure for regularizing importance weights. As a byproduct of our calculations, we also obtain approximate standard errors for estimated predictive errors and for comparing predictive errors between two models. We recommend PSIS-LOO-CV instead of WAIC, because PSIS provides useful diagnostics and effective sample size and Monte Carlo standard error estimates.
+
+```{r waic, eval=F}
+#model selection
+library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+
+load('merged.Rdata')
+
+mergedY = merged[!is.na(merged$avgAA),]
+mergedY[,4:dim(mergedY)[2]] = apply(mergedY[,4:dim(mergedY)[2]], 2, scale)
+y = mergedY$avgAA
+g=model.matrix(~ pais -1, mergedY)
+X = cbind(as.matrix(mergedY[,c('inflation', 'exports', 'imports', 'aid', 'propEmig')]),g)
+K=dim(X)[2]
+N=dim(X)[1]
+t=mergedY$year-1995
+X_corr=cbind(X,t)
+M=dim(X_corr)[2]
+
+model_code = '
+data {
+int<lower=1> N;
+int<lower=1> K;
+int<lower=1> M;
+matrix[N,K] X;
+matrix[N,M] X_corr;
+vector[N] y;
+}
+parameters {
+real<lower=0> nug;
+real<lower=0> sig_sq;
+vector<lower=0>[M] d1;
+vector<lower=0>[M] d2;
+vector[K] b;
+}
+model {
+matrix[N,N] Sigma;
+vector[N] mu;
+matrix[N,K] Mu;
+vector[M] d;
+
+for(m in 1:M){
+d1[m] ~ gamma(1,20);
+d2[m] ~ gamma(10,10);
+d[m] = .5*(d1[m] + d2[m]);
+}
+for (i in 1:(N-1)) {
+for (j in (i+1):N) {
+vector[M] summand;
+for(m in 1:M){
+summand[m] = -pow(X_corr[i,m] - X_corr[j,m],2)/d[m];
+}
+Sigma[i,j] = exp(sum(summand));
+Sigma[j,i] = Sigma[i,j];
+}
+}
+for (i in 1:N){
+for(k in 1:K){
+Mu[i,k] = X[i,k]*b[k];
+}
+mu[i]=sum(Mu[i,1:K]);
+}
+for (i in 1:N)
+Sigma[i,i] = 1 + nug; // + jitter
+
+sig_sq ~ inv_gamma(1,1);
+nug ~ exponential(1);
+
+b ~ normal(0,10);
+
+y ~ multi_normal(mu,sig_sq*Sigma);
+}
+generated quantities {
+   vector[N] log_lik;
+   for (n in 1:N){
+      log_lik[n] = normal_lpdf(y[n] | X[n]*b, sig_sq);
+   }
+}'
+
+
+N = dim(X)[1]
+
+set.seed(990)
+fit_fit <- stan(model_code=model_code, data=list(X=X,N=N,K=K,y=y,M=M,X_corr=X_corr),
+                iter=1000, chains=2)
+save(fit_fit, file='modelSel1.Rdata')
+
+X2=X[,-1]
+X_corr2 = X_corr[,-1]
+N2=dim(X2)[1]
+K2=dim(X2)[2]
+M2=dim(X_corr2)[2]
+set.seed(9898)
+fit_fit2 <- stan(model_code=model_code, data=list(X=X2,N=N2,K=K2,y=y,M=M2,X_corr=X_corr2),
+                iter=1000, chains=2)
+save(fit_fit2, file='modelSel2.Rdata')
+```
+
+```{r load}
+load('modelSel1.Rdata')
+load('modelSel2.Rdata')
+
+library(loo)
+log_lik1 <- extract_log_lik(fit_fit)
+log_lik2 <- extract_log_lik(fit_fit2)
+(waic1 <- waic(log_lik1))
+(waic2 <- waic(log_lik2))
+print(compare(waic1, waic2), digits = 2)
+
+loo1 = loo(log_lik1)
+loo2 = loo(log_lik2)
+print(compare(loo1,loo2))
+```
+
+## Additional reading
+
+\url{http://www.stat.columbia.edu/~gelman/research/unpublished/loo_stan.pdf}
