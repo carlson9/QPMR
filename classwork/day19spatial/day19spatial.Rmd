@@ -1,0 +1,458 @@
+---
+title: "Spatial Modeling"
+author: "David Carlson"
+date: "March 11, 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('~/QPMR/classwork/day19spatial/')
+```
+
+# Controlling for latitude and longitude
+
+* Under what context(s) is this an appropriate solution?
+* We will look at measures of terror activity in Turkey over time as a function of electoral competitiveness
+* First, we will simply include an indicator for an electoral district sharing a border with Iran, Iraq, or Syria (why?)
+* Next, we will control for latitude and longitude
+* Finally, we will include a SouthEast indicator (again, why?)
+
+```{r locControl, results = 'asis'}
+library(MASS)
+load('dataNewC.Rdata')
+
+dataNewC$margin = abs((dataNewC$AKPvotes/(dataNewC$AKPvotes + dataNewC$Kurdishvote)) - (dataNewC$Kurdishvote/(dataNewC$AKPvotes + dataNewC$Kurdishvote)))
+
+dataNewC$border = dataNewC$district %in% c(
+  "Akçakale"
+  ,"Aralık"
+  ,"Başkale"
+  ,"Birecik"
+  ,"Çaldıran"
+  ,"Ceylanpınar"
+  ,"Cizre"
+  ,"Çukurca"
+  ,"İdil"
+  ,"İslahiye"
+  ,"Karkamış"
+  ,"Kızıltepe"
+  ,"Nusaybin"
+  ,"Oğuzeli"
+  ,"Özalp"
+  ,"Silopi"
+  ,"Suruç"
+  ,"Uludere"
+  ,"Vansaray"
+  ,"Yüksekova"
+)
+
+dataNewC$curfew = dataNewC$district %in% c(
+  "Varto"
+  ,"Lice"
+  ,"Silvan"
+  ,"Yüksekova"
+  ,"Cizre"
+  ,"Sur"
+  ,"Bismil"
+  ,"Sason"
+  ,"Kozluk"
+  ,"Hani"
+  ,"Nusaybin"
+  ,"Silopi"
+  ,"Yenişehir"
+  ,"Dargeçit"
+  ,"Kocaköy"
+)
+
+dataNewC[dataNewC$district == 'Suruç', c('attack_p22', 'nkill_n_p22', 'nwound_n_p22')] = 0
+
+dataNewC$subsidy = 0
+dataNewC[dataNewC$province %in% c(
+  "AĞRI"
+  ,"BATMAN"
+  ,"BİTLİS"
+  ,"DİYARBAKIR"
+  ,"HAKKARİ"
+  ,"HATAY"
+  ,"MARDİN"
+  ,"KİLİS"
+  ,"MUŞ"
+  ,"SİİRT"
+  ,"ŞIRNAK"
+  ,"TUNCELİ"
+  ,"VAN"
+), 'subsidy'] = 4
+dataNewC[dataNewC$province %in% c(
+  "ARDAHAN"
+  ,"ELAZIĞ"
+  ,"ERZURUM"
+  ,"IĞDIR"
+  ,"GİRESUN"
+  ,"KARS"
+  ,"OSMANİYE"
+  ,"TOKAT"
+), 'subsidy'] = 3
+dataNewC[dataNewC$province %in% c(
+  "ADANA"
+  ,"AMASYA"
+  ,"ÇORUM"
+  ,"GÜMÜŞHANE"
+  ,"İSTANBUL"
+  ,"KAHRAMANMARAŞ"
+  ,"MALATYA"
+  ,"MERSİN"
+  ,"ORDU"
+  ,"SİVAS"
+  ,"ŞANLIURFA"
+), 'subsidy'] = 2
+dataNewC[dataNewC$province %in% c(
+  "ANKARA" 
+  ,"ADIYAMAN"
+  ,"GAZİANTEP"
+  ,"İZMİR"
+), 'subsidy'] = 1
+
+modmargin1.con = glm.nb(attack_p22 ~ margin + 
+                          unemployment + literacy + infant_mort_perthousand + attack_p1 + subsidy + as.numeric(curfew) + as.numeric(border),   control=glm.control(maxit=100)
+                        , dataNewC)
+
+
+modmargin2.con = glm.nb(nkill_n_p22 ~ margin + 
+                          unemployment + literacy + infant_mort_perthousand + nkill_n_p1+ subsidy + as.numeric(curfew) + as.numeric(border)
+                        , dataNewC)
+
+modmargin3.con = glm.nb(nwound_n_p22 ~ margin + 
+                          unemployment + literacy + infant_mort_perthousand + nwound_n_p1+ subsidy + as.numeric(curfew) + as.numeric(border), control=glm.control(maxit=1000)
+                        , dataNewC)
+
+
+modmargin1.conx = glm.nb(attack_p22 ~  
+                           unemployment + literacy + infant_mort_perthousand + attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                         , dataNewC)
+
+
+modmargin2.conx = glm.nb(nkill_n_p22 ~  
+                           unemployment + literacy + infant_mort_perthousand + nkill_n_p1+ subsidy + curfew + border
+                         , dataNewC)
+
+modmargin3.conx = glm.nb(nwound_n_p22 ~  
+                           unemployment + literacy + infant_mort_perthousand + nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                         , dataNewC)
+
+library(stargazer)
+stargazer(modmargin1.con, modmargin1.conx, modmargin2.con,modmargin2.conx, modmargin3.con,modmargin3.conx, digits=2)
+
+anova(modmargin1.con, modmargin1.conx); anova(modmargin2.con, modmargin2.conx); anova(modmargin3.con, modmargin3.conx)
+
+
+#Table 2: Models with additional controls
+
+KurdData = read.csv('provinceKurds.csv')
+KurdData = KurdData[,-1]
+dataWKurds = merge(dataNewC, KurdData, by = 'province')
+
+modmargin1.con2 = glm.nb(attack_p22 ~ margin + 
+                           population + KurdPopProp +
+                           unemployment + literacy + infant_mort_perthousand +
+                           attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                         , dataWKurds)
+
+
+modmargin2.con2 = glm.nb(nkill_n_p22 ~ margin + 
+                           population + KurdPopProp +
+                           unemployment + literacy + infant_mort_perthousand +
+                           nkill_n_p1+ subsidy + curfew + border, control = glm.control(maxit=100)
+                         , dataWKurds)
+
+modmargin3.con2 = glm.nb(nwound_n_p22 ~ margin + 
+                           population + KurdPopProp +
+                           unemployment + literacy + infant_mort_perthousand +
+                           nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                         , dataWKurds)
+
+stargazer(modmargin1.con, modmargin1.con2, modmargin2.con,modmargin2.con2, modmargin3.con,modmargin3.con2, digits=2)
+
+
+# Table 3: Interaction models with additional controls
+
+dataNewC$KurdAhead = as.factor(as.numeric(dataNewC$Kurdishvote > dataNewC$AKPvotes))
+dataWKurds$KurdAhead = as.factor(as.numeric(dataWKurds$Kurdishvote > dataWKurds$AKPvotes))
+
+modHHI1.con.int = glm.nb(attack_p22 ~ margin*KurdAhead + 
+                           unemployment + literacy + infant_mort_perthousand + attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                         , dataNewC)
+
+
+modHHI2.con.int = glm.nb(nkill_n_p22 ~ margin*KurdAhead + 
+                           unemployment + literacy + infant_mort_perthousand + nkill_n_p1+ subsidy + curfew + border
+                         , dataNewC)
+
+modHHI3.con.int = glm.nb(nwound_n_p22 ~ margin*KurdAhead + 
+                           unemployment + literacy + infant_mort_perthousand + nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                         , dataNewC)
+
+modmargin1.int.con2 = glm.nb(attack_p22 ~ margin*KurdAhead + 
+                               population + KurdPopProp +
+                               unemployment + literacy + infant_mort_perthousand +
+                               attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                             , dataWKurds)
+
+
+modmargin2.int.con2 = glm.nb(nkill_n_p22 ~ margin*KurdAhead + 
+                               population + KurdPopProp +
+                               unemployment + literacy + infant_mort_perthousand +
+                               nkill_n_p1+ subsidy + curfew + border, control = glm.control(maxit=100)
+                             , dataWKurds)
+
+modmargin3.int.con2 = glm.nb(nwound_n_p22 ~ margin*KurdAhead + 
+                               population + KurdPopProp +
+                               unemployment + literacy + infant_mort_perthousand +
+                               nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                             , dataWKurds)
+
+stargazer(modHHI1.con.int, modmargin1.int.con2, modHHI2.con.int,modmargin2.int.con2, modHHI3.con.int,modmargin3.int.con2, digits=2)
+
+
+#Table 4: Controlling for location: Latitude and Longitude
+
+modmargin1.conll = glm.nb(attack_p22 ~ margin + X_coordinate + Y_coordinate +
+                            unemployment + literacy + infant_mort_perthousand + attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                          , dataNewC)
+
+
+modmargin2.conll = glm.nb(nkill_n_p22 ~ margin+ Y_coordinate +
+                            unemployment + literacy + infant_mort_perthousand + nkill_n_p1+ subsidy + curfew + border
+                          , dataNewC,control=glm.control(maxit=100))
+
+modmargin3.conll = glm.nb(nwound_n_p22 ~ margin + Y_coordinate +
+                            unemployment + literacy + infant_mort_perthousand + nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                          , dataNewC)
+
+stargazer(modmargin1.con, modmargin1.conll, modmargin2.con,modmargin2.conll, modmargin3.con,modmargin3.conll, digits = 2)
+
+
+#Table 5: Controlling for location: Southeast indicator
+
+dataNewC$SouthEast = dataNewC$province.x %in% c('Adiyaman',
+                                                'Agri',
+                                                'Ardahan', 
+                                                'Batman', 
+                                                'Bingol', 
+                                                'Bitlis', 
+                                                'Diyarbakir', 
+                                                'Elazig',
+                                                'Erzincan', 
+                                                'Erzurum',
+                                                'Gaziantep', 
+                                                'Hakkari', 
+                                                'Igdir',
+                                                'Kahramanmaras',
+                                                'Kars',
+                                                'Malatya',
+                                                'Mardin',
+                                                'Mus',
+                                                'Sanliurfa',
+                                                'Siirt',
+                                                'Sirnak',
+                                                'Sivas',
+                                                'Tunceli',
+                                                'Van')
+
+modmargin1.conse = glm.nb(attack_p22 ~ margin + SouthEast + infant_mort_perthousand +
+                            unemployment + literacy  + attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                          , dataNewC)
+
+
+modmargin2.conse = glm.nb(nkill_n_p22 ~ margin+ SouthEast + infant_mort_perthousand +
+                            unemployment + literacy  + nkill_n_p1+ subsidy + curfew + border
+                          , dataNewC,control=glm.control(maxit=100))
+
+modmargin3.conse = glm.nb(nwound_n_p22 ~ margin + SouthEast + infant_mort_perthousand +
+                            unemployment + literacy  + nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                          , dataNewC)
+
+modmargin1 = glm.nb(attack_p22 ~ margin
+                    , dataNewC)
+
+
+modmargin2 = glm.nb(nkill_n_p22 ~ margin
+                    , dataNewC)
+
+modmargin3 = glm.nb(nwound_n_p22 ~ margin
+                    , dataNewC)
+
+stargazer(modmargin1, modmargin1.conse, modmargin2,modmargin2.conse, modmargin3,modmargin3.conse, digits = 2)
+
+
+#Table 6: Results of interactive models and interactive models controlling for location
+
+modHHI1.conll.int = glm.nb(attack_p22 ~ margin*KurdAhead + X_coordinate + Y_coordinate +
+                             unemployment + literacy + infant_mort_perthousand + attack_p1+ subsidy + curfew + border,   control=glm.control(maxit=100)
+                           , dataNewC)
+
+
+modHHI2.conll.int = glm.nb(nkill_n_p22 ~ margin*KurdAhead + Y_coordinate +
+                             unemployment + literacy + infant_mort_perthousand + nkill_n_p1+ subsidy + curfew + border
+                           , dataNewC)
+
+modHHI3.conll.int = glm.nb(nwound_n_p22 ~ margin*KurdAhead + X_coordinate + Y_coordinate +
+                             unemployment + literacy + infant_mort_perthousand + nwound_n_p1+ subsidy + curfew + border, control=glm.control(maxit=100)
+                           , dataNewC)
+
+stargazer(modHHI1.con.int, modHHI1.conll.int, modHHI2.con.int,modHHI2.conll.int, modHHI3.con.int,modHHI3.conll.int)
+```
+
+
+# Adjusting the standard errors
+
+* It is often improper to simply control for lat/long, use the indicator(s), etc.
+* We may simply be concerned with adjusting the standard errors of the parameter estimates with the knowledge that our OLS assumptions are violated (spatial auto-correlation)
+* Let us continue with the same analysis
+* We will adjust with Newey-West standard errors
+* Recall this approach from the temporal week, but this time we are use distance from the mean (roughly) to adjust the standard errors, rather than a temporal component - the theory is the same
+
+```{r NWse}
+library(sandwich)
+library(lmtest)
+z = sqrt(scale(dataNewC$X_coordinate)^2 + scale(dataNewC$Y_coordinate)^2) #not exactly scaled distance, but a close approximation
+coeftest(modmargin1.con)
+coeftest(modmargin1.con,
+         vcov. = NeweyWest(modmargin1.con,
+                           order.by = z))
+#what happened, and why?
+```
+
+* Common error adjustments are not valid for spatial data (such as RCSE, PCSE, etc.)
+
+# Gaussian processes
+
+* When a GP simply smooths over space, we refer to it as Bayesian kriging
+* Not widely used, but this is changing rapidly
+* To ease the computational load, if you are only concerned with conditional non-independence over space, not time or other covariates, you can either smooth over the scaled distance from the center (or wherever, does not matter mathematically), or you can smooth across both lat and long, allowing different correlations based on precisely where the observation is (why might we want this added precision/flexibility?)
+* Generally, it has been found that the Matern kernel is good for spatial auto-correlation, as it tends to be more wavy than the seperable exponential, and there is often a bit of non-randomness near borders
+* We will here assume that borders, since they are simply electoral districts, have relatively smooth correlations across borders, and therefore stick to our well-known Gaussian
+* Unfortunately, out-of-the-box GPs do not really offer the option of changing what goes in to the mean function vs. what goes in to the variance-covariance estimation
+* If we include non-sensical covariates (i.e., lat and long) in the estimation of the mean function, we will get bias in our parameter estimates
+  + Not a problem if we are measuring or predicting, but not good for inference
+* We have to therefore build the model, such that we have everything we need for the properly specified mean function, and lat and long simply go in to the estimating the variance-covariance
+* We will now look at the estimated effect on vote returns for the Kurdish party as a function of terror attacks
+* The example below analyzes a longer-term data set
+* We therefore use first-differences (recall temporal and TSCS) to account for time trends and confounders, and we will smooth over latitude and longitude
+
+```{r GPkrig, eval = FALSE}
+
+library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write=TRUE)
+
+load('GPdata.Rdata')
+
+model_code = '
+data {
+int<lower=1> N;
+int<lower=1> K;
+matrix[N,K] X;
+int<lower=1> N_dists;
+real lat[N_dists];
+real longitude[N_dists];
+int<lower=1> dist[N];
+int<lower=1> N_years;
+int<lower=1> year[N];
+vector[N] y;
+}
+parameters {
+vector[K] b;
+matrix[N_dists, N_years] y_GP_std_lat;
+real<lower=0> y_length_GP_lat;
+real<lower=0> y_sigma_GP_lat;
+matrix[N_dists, N_years] y_GP_std_long;
+real<lower=0> y_length_GP_long;
+real<lower=0> y_sigma_GP_long;
+real<lower=0> sigma;
+}
+transformed parameters {
+matrix[N_dists,N_years] y_GP_term_lat;
+matrix[N_dists,N_years] y_GP_term_long;
+{
+  matrix[N_dists, N_dists] y_cov_lat;
+  matrix[N_dists, N_dists] y_L_cov_lat;
+  y_cov_lat = cov_exp_quad(lat, y_sigma_GP_lat,
+  y_length_GP_lat);
+  for (dis in 1:N_dists) y_cov_lat[dis, dis] += 1e-12;
+  y_L_cov_lat = cholesky_decompose(y_cov_lat);
+  y_GP_term_lat = y_L_cov_lat * y_GP_std_lat;
+}
+{
+  matrix[N_dists, N_dists] y_cov_long;
+  matrix[N_dists, N_dists] y_L_cov_long;
+  y_cov_long = cov_exp_quad(longitude, y_sigma_GP_long,
+  y_length_GP_long);
+  for (dis in 1:N_dists) y_cov_long[dis, dis] += 1e-12;
+  y_L_cov_long = cholesky_decompose(y_cov_long);
+  y_GP_term_long = y_L_cov_long * y_GP_std_long;
+}
+}
+model {
+vector[N] mu;
+matrix[N,K] Mu;
+
+b ~ normal(0,10);
+
+to_vector(y_GP_std_lat) ~ normal(0, 1);
+y_length_GP_lat ~ weibull(30, 8);
+y_sigma_GP_lat ~ gamma(2, .5);
+to_vector(y_GP_std_lat) ~ normal(0, 1);
+y_length_GP_long ~ weibull(30, 8);
+y_sigma_GP_long ~ gamma(2, .5);
+
+for (i in 1:N){
+for(k in 1:K){
+Mu[i,k] = X[i,k]*b[k];
+}
+mu[i]=sum(Mu[i,1:K] + y_GP_term_lat[dist[i], year[i]] + y_GP_term_long[dist[i], year[i]]);
+}
+
+sigma ~ inv_gamma(1, 1);
+
+y ~ normal(mu, sigma);
+}'
+
+
+
+myOrder = order(as.numeric(as.factor(dLongElecFD$uID)))
+X = cbind(model.matrix( ~ dLongElecFD$year.x - 1), scale(dLongElecFD$attackDiff)[myOrder])
+to_stan = list(
+  X=X,
+K = ncol(X),
+y = scale(dLongElecFD$incDiff)[myOrder],
+N = dim(dLongElecFD)[1],
+N_dists = length(unique(dLongElecFD$uID)),
+dist = as.numeric(as.factor(dLongElecFD$uID))[myOrder],
+lat = unique(dLongElecFD$X_coordinate[myOrder]),
+longitude = unique(dLongElecFD$Y_coordinate[myOrder]),
+N_years = length(unique(dLongElecFD$elec)),
+year = (dLongElecFD$elec - 1)[myOrder]
+)
+
+set.seed(987)
+mod1 = stan(model_code=model_code, data=to_stan,
+            iter=500, chains=2)
+save(mod1, file = 'GPkrig.Rdata')
+```
+
+
+```{r GPload}
+load('GPkrig.Rdata')
+#look at the results...
+
+```
+
+
+
+
+
+
+
+
+
